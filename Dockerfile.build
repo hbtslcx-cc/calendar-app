@@ -1,0 +1,74 @@
+FROM openjdk:17-jdk-slim
+
+# 安装必要的工具
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装Node.js 18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置Android SDK环境变量
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV ANDROID_HOME=/opt/android-sdk
+ENV PATH=${PATH}:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools
+
+# 下载并安装Android SDK Command Line Tools
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools \
+    && cd ${ANDROID_SDK_ROOT}/cmdline-tools \
+    && curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip \
+    && unzip cmdline-tools.zip \
+    && rm cmdline-tools.zip \
+    && mv cmdline-tools latest
+
+# 接受许可证并安装必要的SDK组件
+RUN yes | sdkmanager --licenses \
+    && sdkmanager "platform-tools" \
+    && sdkmanager "platforms;android-33" \
+    && sdkmanager "build-tools;33.0.0" \
+    && sdkmanager "cmdline-tools;latest"
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制项目文件
+COPY package*.json ./
+COPY capacitor.config.ts ./
+COPY tsconfig*.json ./
+COPY vite.config.ts ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
+COPY index.html ./
+COPY .eslintrc* ./
+COPY src ./src
+COPY public ./public
+
+# 安装依赖
+RUN npm ci
+
+# 构建Web应用
+RUN npm run build
+
+# 添加安卓平台并同步
+RUN npx cap add android || true
+RUN npx cap sync android
+
+# 进入安卓目录并构建Debug APK
+WORKDIR /app/android
+RUN ./gradlew assembleDebug
+
+# 输出APK位置
+RUN echo "APK构建完成！" \
+    && ls -la app/build/outputs/apk/debug/
+
+# 设置最终工作目录
+WORKDIR /app
+
+# 复制APK到根目录方便提取
+RUN cp android/app/build/outputs/apk/debug/app-debug.apk ./calendar-app-debug.apk
+
+CMD ["echo", "构建完成！APK文件位于: /app/calendar-app-debug.apk"]
