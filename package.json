@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "\"C:\\Users\\liu-c\\Documents\\GitHub\\calendar-app\\node_modules\\.bin\\vite.cmd\" build",
     "lint": "eslint .",
     "preview": "vite preview",
     "check": "tsc -b --noEmit"

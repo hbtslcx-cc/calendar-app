@@ -1,15 +1,17 @@
 import { useCalendarStore } from '@/store/calendarStore';
 import { formatDate } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Calendar, Search, Settings, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Search, Settings, Menu, Cloud, Bell } from 'lucide-react';
 
 interface HeaderProps {
   onSearchClick: () => void;
   onSettingsClick: () => void;
+  onWeatherClick: () => void;
+  onAlarmClick: () => void;
 }
 
-export function Header({ onSearchClick, onSettingsClick }: HeaderProps) {
-  const { currentDate, viewMode, setViewMode, goToToday, goToPrevious, goToNext } = useCalendarStore();
+export function Header({ onSearchClick, onSettingsClick, onWeatherClick, onAlarmClick }: HeaderProps) {
+  const { currentDate, viewMode, setViewMode, goToToday, goToPrevious, goToNext, weather } = useCalendarStore();
 
   const getTitle = () => {
     switch (viewMode) {
@@ -50,6 +52,23 @@ export function Header({ onSearchClick, onSettingsClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-1">
+          <button
+            onClick={onWeatherClick}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors relative"
+          >
+            <Cloud className="w-5 h-5" />
+            {weather && (
+              <span className="absolute -top-1 -right-1 text-xs bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                {weather.current.temperature}°
+              </span>
+            )}
+          </button>
+          <button
+            onClick={onAlarmClick}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <Bell className="w-5 h-5" />
+          </button>
           <button
             onClick={onSearchClick}
             className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"

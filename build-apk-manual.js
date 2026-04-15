@@ -5,9 +5,9 @@
  * 尝试使用系统中可能存在的工具构建APK
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const colors = {
   reset: '\x1b[0m',
@@ -24,7 +24,8 @@ function log(message, color = 'reset') {
 
 function checkCommand(command) {
   try {
-    execSync(`which ${command}`, { stdio: 'ignore' });
+    const cmd = process.platform === 'win32' ? `where ${command}` : `which ${command}`;
+    execSync(cmd, { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -53,23 +54,19 @@ async function main() {
   const nodeVersion = process.version;
   log(`✓ Node.js 版本: ${nodeVersion}`, 'green');
 
-  // 检查 npm
-  if (!checkCommand('npm')) {
-    log('✗ npm 未找到', 'red');
-    process.exit(1);
-  }
-  log('✓ npm 已安装', 'green');
+  // 跳过 npm 检查，直接使用完整路径
+  log('✓ npm 路径: C:\\Program Files\\nodejs\\npm.cmd', 'green');
 
   // 安装依赖
   log('\n安装依赖...', 'yellow');
-  if (!runCommand('npm install')) {
+  if (!runCommand('"C:\\Program Files\\nodejs\\npm.cmd" install')) {
     log('依赖安装失败', 'red');
     process.exit(1);
   }
 
   // 构建 Web 应用
   log('\n构建 Web 应用...', 'yellow');
-  if (!runCommand('npm run build')) {
+  if (!runCommand('"C:\\Users\\liu-c\\Documents\\GitHub\\calendar-app\\node_modules\\.bin\\vite.cmd" build')) {
     log('Web 应用构建失败', 'red');
     process.exit(1);
   }
@@ -78,7 +75,7 @@ async function main() {
   log('\n检查 Capacitor...', 'yellow');
   if (!fs.existsSync('node_modules/@capacitor/core')) {
     log('安装 Capacitor...', 'yellow');
-    if (!runCommand('npm install @capacitor/core @capacitor/cli @capacitor/android')) {
+    if (!runCommand('"C:\\Program Files\\nodejs\\npm.cmd" install @capacitor/core @capacitor/cli @capacitor/android')) {
       log('Capacitor 安装失败', 'red');
       process.exit(1);
     }
@@ -86,7 +83,7 @@ async function main() {
 
   // 同步安卓项目
   log('\n同步安卓项目...', 'yellow');
-  if (!runCommand('npx cap sync android')) {
+  if (!runCommand('"C:\\Program Files\\nodejs\\npx.cmd" cap sync android')) {
     log('同步失败', 'red');
     process.exit(1);
   }

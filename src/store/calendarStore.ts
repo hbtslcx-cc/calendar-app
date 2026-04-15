@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Calendar, Event, Tag, Reminder, ViewMode, AppSettings } from '@/types/calendar';
+import type { Calendar, Event, Tag, Reminder, ViewMode, AppSettings, Weather, SavedCity, Alarm, AlarmLog } from '@/types/calendar';
 import { v4 as uuidv4 } from 'uuid';
 
 interface CalendarStore {
@@ -13,6 +13,14 @@ interface CalendarStore {
   tags: Tag[];
   reminders: Reminder[];
   settings: AppSettings;
+  
+  // Weather state
+  weather: Weather | null;
+  savedCities: SavedCity[];
+  
+  // Alarm state
+  alarms: Alarm[];
+  alarmLogs: AlarmLog[];
   
   // Actions
   setCurrentDate: (date: Date) => void;
@@ -42,6 +50,20 @@ interface CalendarStore {
   updateReminder: (id: string, updates: Partial<Reminder>) => void;
   deleteReminder: (id: string) => void;
   getRemindersByEvent: (eventId: string) => Reminder[];
+  
+  // Weather actions
+  updateWeather: (weather: Weather) => void;
+  addSavedCity: (city: Omit<SavedCity, 'id' | 'createdAt'>) => string;
+  updateSavedCity: (id: string, updates: Partial<SavedCity>) => void;
+  deleteSavedCity: (id: string) => void;
+  setDefaultCity: (cityId: string) => void;
+  
+  // Alarm actions
+  addAlarm: (alarm: Omit<Alarm, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateAlarm: (id: string, updates: Partial<Alarm>) => void;
+  deleteAlarm: (id: string) => void;
+  toggleAlarm: (id: string) => void;
+  addAlarmLog: (log: Omit<AlarmLog, 'id' | 'createdAt'>) => string;
   
   // Settings actions
   updateSettings: (settings: Partial<AppSettings>) => void;
@@ -97,6 +119,27 @@ const defaultSettings: AppSettings = {
   weekStartsOn: 1,
   timeFormat: '24h',
   dateFormat: 'yyyy-MM-dd',
+  weatherSettings: {
+    locationType: 'manual',
+    temperatureUnit: 'celsius',
+    autoUpdate: true,
+    updateFrequency: 60,
+    showCityName: true,
+    showAirQuality: true,
+    showLifeIndex: true,
+    weatherNotification: true,
+    updatedAt: Date.now(),
+  },
+  alarmSettings: {
+    defaultVibration: true,
+    defaultSnoozeMinutes: 10,
+    defaultSnoozeCount: 3,
+    gradualVolume: true,
+    maxRingDuration: 300,
+    ringInSilent: false,
+    showInNotification: true,
+    updatedAt: Date.now(),
+  },
 };
 
 export const useCalendarStore = create<CalendarStore>()(
@@ -110,6 +153,10 @@ export const useCalendarStore = create<CalendarStore>()(
       tags: defaultTags,
       reminders: [],
       settings: defaultSettings,
+      weather: null,
+      savedCities: [],
+      alarms: [],
+      alarmLogs: [],
 
       setCurrentDate: (date) => set({ currentDate: date }),
       setSelectedDate: (date) => set({ selectedDate: date }),
@@ -310,6 +357,82 @@ export const useCalendarStore = create<CalendarStore>()(
         }
         set({ currentDate: newDate });
       },
+
+      // Weather actions
+      updateWeather: (weather) => set({ weather }),
+      addSavedCity: (city) => {
+        const id = uuidv4();
+        const newCity: SavedCity = {
+          ...city,
+          id,
+          createdAt: Date.now(),
+        };
+        set((state) => ({ savedCities: [...state.savedCities, newCity] }));
+        return id;
+      },
+      updateSavedCity: (id, updates) => {
+        set((state) => ({
+          savedCities: state.savedCities.map((city) =>
+            city.id === id ? { ...city, ...updates } : city
+          ),
+        }));
+      },
+      deleteSavedCity: (id) => {
+        set((state) => ({
+          savedCities: state.savedCities.filter((city) => city.id !== id),
+        }));
+      },
+      setDefaultCity: (cityId) => {
+        set((state) => ({
+          savedCities: state.savedCities.map((city) => ({
+            ...city,
+            isDefault: city.id === cityId,
+          })),
+        }));
+      },
+
+      // Alarm actions
+      addAlarm: (alarm) => {
+        const id = uuidv4();
+        const newAlarm: Alarm = {
+          ...alarm,
+          id,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        set((state) => ({ alarms: [...state.alarms, newAlarm] }));
+        return id;
+      },
+      updateAlarm: (id, updates) => {
+        set((state) => ({
+          alarms: state.alarms.map((alarm) =>
+            alarm.id === id ? { ...alarm, ...updates, updatedAt: Date.now() } : alarm
+          ),
+        }));
+      },
+      deleteAlarm: (id) => {
+        set((state) => ({
+          alarms: state.alarms.filter((alarm) => alarm.id !== id),
+          alarmLogs: state.alarmLogs.filter((log) => log.alarmId !== id),
+        }));
+      },
+      toggleAlarm: (id) => {
+        set((state) => ({
+          alarms: state.alarms.map((alarm) =>
+            alarm.id === id ? { ...alarm, isEnabled: !alarm.isEnabled, updatedAt: Date.now() } : alarm
+          ),
+        }));
+      },
+      addAlarmLog: (log) => {
+        const id = uuidv4();
+        const newLog: AlarmLog = {
+          ...log,
+          id,
+          createdAt: Date.now(),
+        };
+        set((state) => ({ alarmLogs: [...state.alarmLogs, newLog] }));
+        return id;
+      },
     }),
     {
       name: 'calendar-storage',
@@ -319,6 +442,9 @@ export const useCalendarStore = create<CalendarStore>()(
         tags: state.tags,
         reminders: state.reminders,
         settings: state.settings,
+        savedCities: state.savedCities,
+        alarms: state.alarms,
+        alarmLogs: state.alarmLogs,
       }),
     }
   )

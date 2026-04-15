@@ -4,7 +4,9 @@ import { Header } from '@/components/Header';
 import { MonthView, WeekView, DayView, YearView, EventList, EventEditor } from '@/components/calendar';
 import { SearchPanel } from '@/components/SearchPanel';
 import { Settings } from './Settings';
-import { Plus } from 'lucide-react';
+import { Weather } from './Weather';
+import { Alarm } from './Alarm';
+import { Plus, Cloud, Bell } from 'lucide-react';
 import type { Event } from '@/types/calendar';
 
 export function Home() {
@@ -13,6 +15,8 @@ export function Home() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isWeatherOpen, setIsWeatherOpen] = useState(false);
+  const [isAlarmOpen, setIsAlarmOpen] = useState(false);
 
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
@@ -33,11 +37,21 @@ export function Home() {
     return <Settings onBack={() => setIsSettingsOpen(false)} />;
   }
 
+  if (isWeatherOpen) {
+    return <Weather onBack={() => setIsWeatherOpen(false)} />;
+  }
+
+  if (isAlarmOpen) {
+    return <Alarm onBack={() => setIsAlarmOpen(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header
         onSearchClick={() => setIsSearchOpen(true)}
         onSettingsClick={() => setIsSettingsOpen(true)}
+        onWeatherClick={() => setIsWeatherOpen(true)}
+        onAlarmClick={() => setIsAlarmOpen(true)}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
