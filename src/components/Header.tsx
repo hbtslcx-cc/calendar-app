@@ -1,7 +1,7 @@
 import { useCalendarStore } from '@/store/calendarStore';
 import { formatDate } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Calendar, Search, Settings, Menu, Cloud, Bell } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Settings, Cloud, Bell } from 'lucide-react';
 
 interface HeaderProps {
   onSearchClick: () => void;
@@ -40,12 +40,6 @@ export function Header({ onSearchClick, onSettingsClick, onWeatherClick, onAlarm
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
-          <button
-            onClick={onSettingsClick}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
           <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
             {getTitle()}
           </h1>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCalendarStore } from '@/store/calendarStore';
 import { cn } from '@/lib/utils';
-import { X, RefreshCw, MapPin, Plus, Trash2, Sun, Cloud, CloudRain, Snowflake, Wind, Droplets, Thermometer, Barometer, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, RefreshCw, MapPin, Plus, Trash2, Sun, Cloud, CloudRain, Snowflake, Wind, Droplets, ChevronUp } from 'lucide-react';
 
 interface WeatherProps {
   onBack: () => void;
